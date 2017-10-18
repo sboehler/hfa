@@ -50,6 +50,11 @@ data AppSettings = AppSettings
     -- ^ Copyright text to appear in the footer of the page
   , appAnalytics :: Maybe Text
     -- ^ Google Analytics code
+  , appPostgresqlHost :: Text
+  , appPostgresqlPort :: Int
+  , appPostgresqlDatabase :: Text
+  , appPostgresqlUser :: Text
+  , appPostgresqlPassword :: Text
   }
 
 instance FromJSON AppSettings where
@@ -73,6 +78,11 @@ instance FromJSON AppSettings where
       appSkipCombining <- o .:? "skip-combining" .!= defaultDev
       appCopyright <- o .: "copyright"
       appAnalytics <- o .:? "analytics"
+      appPostgresqlHost <- o .: "postgresql-host"
+      appPostgresqlPort <- o .: "postgresql-port"
+      appPostgresqlDatabase <- o .: "postgresql-database"
+      appPostgresqlUser <- o .: "postgresql-user"
+      appPostgresqlPassword <- o .: "postgresql-password"
       return AppSettings {..}
 
 -- | Settings for 'widgetFile', such as which template languages to support and

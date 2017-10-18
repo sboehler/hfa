@@ -6,6 +6,12 @@ host:           "_env:HOST:*4" # any IPv4 host
 port:           "_env:PORT:3000" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
 ip-from-header: "_env:IP_FROM_HEADER:false"
 
+postgresql-host: "_env:POSTGRESQL_HOST:localhost"
+postgresql-port: "_env:POSTGRESQL_PORT:5432"
+postgresql-database: "_env:POSTGRESQL_DATABASE:accountli"
+postgresql-user: "_env:POSTGRESQL_USER:silvio"
+postgresql-password: "_env:POSTGRESQL_PASSWORD:"
+
 # Default behavior: determine the application root from the request headers.
 # Uncomment to set an explicit approot
 #approot:        "_env:APPROOT:http://localhost:3000"

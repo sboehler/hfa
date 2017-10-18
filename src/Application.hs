@@ -105,6 +105,7 @@ warpSettings foundation =
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
   settings <- getAppSettings
+  putStrLn $ appPostgresqlDatabase settings
   foundation <- makeFoundation settings
   wsettings <- getDevSettings $ warpSettings foundation
   app <- makeApplication foundation
