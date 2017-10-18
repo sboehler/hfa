@@ -20,6 +20,7 @@ module Application
   ) where
 
 import Control.Monad.Logger (liftLoc)
+import qualified Data.Text as T
 import Import
 import Language.Haskell.TH.Syntax (qLocation)
 import Network.Wai (Middleware)
@@ -37,10 +38,25 @@ import System.Log.FastLogger
 import Handler.Common
 import Handler.Home
 
+import Data.Pool (Pool, createPool)
+import qualified Database.PostgreSQL.Simple as PG
+
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
 -- comments there for more details.
 mkYesodDispatch "App" resourcesApp
+
+makeDatabasePool :: AppSettings -> IO (Pool PG.Connection)
+makeDatabasePool settings = do
+  let info =
+        PG.defaultConnectInfo
+        { PG.connectHost = T.unpack $ appPostgresqlHost settings
+        , PG.connectPort = fromIntegral $ appPostgresqlPort settings
+        , PG.connectUser = T.unpack $ appPostgresqlUser settings
+        , PG.connectPassword = T.unpack $ appPostgresqlPassword settings
+        , PG.connectDatabase = T.unpack $ appPostgresqlDatabase settings
+        }
+  createPool (PG.connect info) PG.close 1 10 10
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value. This is also
@@ -59,6 +75,7 @@ makeFoundation appSettings
        else static)
       (appStaticDir appSettings)
     -- Return the foundation
+  pool <- makeDatabasePool appSettings
   return App {..}
 
 -- | Convert our foundation to a WAI Application by calling @toWaiAppPlain@ and
@@ -105,7 +122,6 @@ warpSettings foundation =
 getApplicationDev :: IO (Settings, Application)
 getApplicationDev = do
   settings <- getAppSettings
-  putStrLn $ appPostgresqlDatabase settings
   foundation <- makeFoundation settings
   wsettings <- getDevSettings $ warpSettings foundation
   app <- makeApplication foundation
