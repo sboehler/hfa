@@ -38,8 +38,11 @@ import System.Log.FastLogger
 import Handler.Common
 import Handler.Home
 
-import Data.Pool (Pool, createPool)
+import Data.Pool (Pool, createPool, withResource)
 import qualified Database.PostgreSQL.Simple as PG
+import Database.PostgreSQL.Simple.Migration as PGM
+       (runMigration, MigrationCommand(MigrationDirectory, MigrationInitialization),
+        MigrationContext(..))
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -56,7 +59,13 @@ makeDatabasePool settings = do
         , PG.connectPassword = T.unpack $ appPostgresqlPassword settings
         , PG.connectDatabase = T.unpack $ appPostgresqlDatabase settings
         }
-  createPool (PG.connect info) PG.close 1 10 10
+  pool <- createPool (PG.connect info) PG.close 1 10 10
+  withResource pool $ \con  -> PG.withTransaction con $ do
+      _ <- PGM.runMigration $ PGM.MigrationContext PGM.MigrationInitialization True con
+      _ <- PGM.runMigration
+        (PGM.MigrationContext (PGM.MigrationDirectory "config/migrations") True con)
+      return ()
+  return pool
 
 -- | This function allocates resources (such as a database connection pool),
 -- performs initialization and returns a foundation datatype value. This is also
@@ -118,7 +127,6 @@ warpSettings foundation =
          (toLogStr $ "Exception from Warp: " ++ show e))
     defaultSettings
 
-
 getData :: IO (App, Settings, Application)
 getData = do
   settings <- getAppSettings
@@ -126,8 +134,6 @@ getData = do
   wsettings <- getDevSettings $ warpSettings foundation
   app <- makeApplication foundation
   return (foundation, wsettings, app)
-
-
 
 -- | For yesod devel, return the Warp settings and WAI Application.
 getApplicationDev :: IO (Settings, Application)
