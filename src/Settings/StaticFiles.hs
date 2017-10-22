@@ -3,7 +3,6 @@
 {-# LANGUAGE TemplateHaskell   #-}
 module Settings.StaticFiles where
 
-import Settings     (appStaticDir, compileTimeAppSettings)
 import Yesod.Static (staticFiles)
 
 -- This generates easy references to files in the static directory at compile time,
@@ -18,4 +17,4 @@ import Yesod.Static (staticFiles)
 -- If the identifier is not available, you may use:
 --
 --     StaticFile ["js", "script.js"] []
-staticFiles (appStaticDir compileTimeAppSettings)
+staticFiles "static"

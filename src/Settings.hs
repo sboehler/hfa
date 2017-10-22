@@ -12,12 +12,8 @@
 module Settings where
 
 import ClassyPrelude.Yesod
-import qualified Control.Exception as Exception
-import Data.Aeson (Result(..), (.!=), (.:?), fromJSON, withObject)
-import Data.FileEmbed (embedFile)
-import Data.Yaml (decodeEither')
+import Data.Aeson ((.!=), (.:?), withObject)
 import Network.Wai.Handler.Warp (HostPreference)
-import Yesod.Default.Config2 (applyEnvValue, configSettingsYml)
 
 -- | Runtime settings to configure this application. These settings can be
 -- loaded from various sources: defaults, environment variables, config files,
@@ -92,26 +88,3 @@ instance FromJSON AppSettings where
 -- | How static files should be combined.
 combineSettings :: CombineSettings
 combineSettings = def
-
--- The rest of this file contains settings which rarely need changing by a
--- user.
--- | Raw bytes at compile time of @config/settings.yml@
-configSettingsYmlBS :: ByteString
-configSettingsYmlBS = $(embedFile configSettingsYml)
-
--- | @config/settings.yml@, parsed to a @Value@.
-configSettingsYmlValue :: Value
-configSettingsYmlValue =
-  either Exception.throw id $ decodeEither' configSettingsYmlBS
-
--- | A version of @AppSettings@ parsed at compile time from @config/settings.yml@.
-compileTimeAppSettings :: AppSettings
-compileTimeAppSettings =
-  case fromJSON $ applyEnvValue False mempty configSettingsYmlValue of
-    Error e -> error e
-    Success settings -> settings
--- The following two functions can be used to combine multiple CSS or JS files
--- at compile time to decrease the number of http requests.
--- Sample usage (inside a Widget):
---
--- > $(combineStylesheets 'StaticR [style1_css, style2_css])

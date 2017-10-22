@@ -82,7 +82,7 @@ makeFoundation appSettings
     (if appMutableStatic appSettings
        then staticDevel
        else static)
-      (appStaticDir appSettings)
+      ("static")
     -- Return the foundation
   pool <- makeDatabasePool appSettings
   return App {..}
@@ -156,7 +156,7 @@ appMain
   settings <-
     loadYamlSettingsArgs
         -- fall back to compile-time values, set to [] to require values at runtime
-      [configSettingsYmlValue]
+      []
         -- allow environment variables to override
       useEnv
     -- Generate the foundation from the settings
